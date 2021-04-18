@@ -1,143 +1,58 @@
-<script>
-  import { onMount } from 'svelte';
+<script lang="ts">
+  import MainView from './components/MainView.svelte';
+  import { simulationsComponents, SimulationType } from './enums';
+  import { title } from './diver';
+  import Button from './components/Button.svelte';
 
-  import * as simulation from './simulation';
-  const { simulating, canvas, colors, N } = simulation;
-  let currentColorIndex = 0;
-  onMount(() => {
-    $colors = ['#ffffff'];
-    $N = 100;
-  });
+  let selectedSimulationType = SimulationType.WEBGL2;
+  $: $title = simulationsComponents[selectedSimulationType].title;
+  const buttonClass =
+    'h-full border-b-8 border-primary-200 border-opacity-0 hover:border-opacity-100 duration-200 transition-colors';
+  const bottomClass = 'flex place-self-center self-center h-full w-full';
 </script>
 
 <svelte:head>
-  <title>Fluid Simulation</title>
+  <title>{$title}</title>
 </svelte:head>
-
-<main class="responsive-grid">
-  <div class="side">
-    <div>
-      Resolution - <input
-        type="range"
-        bind:value={$N}
-        min="20"
-        max="200"
-        step="10"
+<main class="bg-primary-900 min-h-screen text-secondary-500 font-roboto">
+  <MainView>
+    <div slot="root" class="h-screen">
+      <svelte:component
+        this={simulationsComponents[selectedSimulationType].component}
       />
     </div>
-
-    {#each $colors as color, index (index)}
-      <div class="color" class:selected={currentColorIndex === index}>
-        Color-{index}
-        <input
-          type="color"
-          value={color}
-          on:change={(e) => {
-            $colors[index] = e.target.value;
-            currentColorIndex = index;
-          }}
-        />
-        <button
-          on:click={() => {
-            currentColorIndex = index;
-          }}>Use</button
-        >
-        <button
-          on:click={() => {
-            $colors.splice(index, 1);
-            $colors = $colors;
-          }}>Remove</button
-        >
-      </div>
-    {/each}
-    <button
-      on:click={() => {
-        $colors.push('black');
-        currentColorIndex = $colors.length - 1;
-        $colors = $colors;
-      }}>Add Color</button
-    >
-  </div>
-  <div class="bottom">
-    <div>Made by Rylox</div>
-  </div>
-  <div class="root">
-    <canvas
-      bind:this={$canvas}
-      on:mousemove={(e) => {
-        const canvas = e.target;
-        const rect = canvas.getBoundingClientRect();
-        const scaleX = canvas.width / rect.width;
-        const scaleY = canvas.height / rect.height;
-        const x = (e.clientX - rect.left) * scaleX;
-        const y = (e.clientY - rect.top) * scaleY;
-        simulation.update(Math.floor(x), Math.floor(y), currentColorIndex);
-      }}
-    />
-    <div class="controls">
-      <button
-        on:click={() => {
-          $simulating = !$simulating;
-        }}>{$simulating ? 'Stop' : 'Play'}</button
+    <div slot="sidetop">
+      <svelte:component
+        this={simulationsComponents[selectedSimulationType].configComponent}
+      />
+    </div>
+    <div slot="sidebottom" class={bottomClass}>
+      <Button
+        className="w-full font-lato text-lg"
+        selected={selectedSimulationType === SimulationType.WEBGL2}
+        on:click={() => (selectedSimulationType = SimulationType.WEBGL2)}
+        >Webgl</Button
       >
-      <button
-        on:click={() => {
-          simulation.reset();
-        }}>Reset</button
+      <Button
+        className={'w-full font-lato text-lg'}
+        selected={selectedSimulationType === SimulationType.CANVAS2D}
+        on:click={() => (selectedSimulationType = SimulationType.CANVAS2D)}
+        >Canvas2D</Button
       >
     </div>
-  </div>
+  </MainView>
 </main>
 
-<style>
-  main {
-    height: 100vh;
-    margin: 0 auto;
-    place-content: center;
-    grid-template-columns: max-content 1fr;
-    grid-template-rows: 1fr min-content;
-    gap: 1rem;
+<style global>
+  :not(.show-scrollbar)::-webkit-scrollbar {
+    display: none;
   }
-  .bottom {
-    grid-area: 2/1/3/2;
-    padding: 1rem;
+  ::-webkit-scrollbar {
+    width: 5px;
+    height: 5px;
   }
-  .side {
-    display: flex;
-    flex-direction: column;
-    gap: 1rem;
-    padding: 8px;
-  }
-  .side > * {
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-    padding: 1rem;
+  ::-webkit-scrollbar-thumb {
+    background-color: currentColor;
     border-radius: 10px;
-    white-space: nowrap;
-  }
-  .color.selected {
-    border: 2px solid rgb(0, 124, 165);
-  }
-  .controls {
-    position: absolute;
-    top: 0;
-    left: 0;
-  }
-  .root {
-    position: relative;
-    height: 100%;
-    max-height: 100vh;
-    width: 100%;
-    max-width: 100vw;
-    grid-area: 1/2/-1/-1;
-  }
-  canvas {
-    height: 100%;
-    width: 100%;
-  }
-  input[type='color'],
-  button {
-    height: 2.5rem;
   }
 </style>

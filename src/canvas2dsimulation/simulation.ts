@@ -26,7 +26,7 @@ export function draw_dens(N, dens, cxt, color) {
 const BASE_N = 100;
 export const simulating = writable(false);
 export const canvas = writable(null);
-export const colors = writable([]);
+export const colors = writable(["#ffffff"]);
 export const N = writable(BASE_N);
 
 let n = BASE_N;
